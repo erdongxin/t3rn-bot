@@ -24,7 +24,6 @@ def clear_terminal():
 
 description = """
 自动桥接机器人  https://unlock3d.t3rn.io/rewards
-还是继续操你麻痹Rambeboy,偷私钥🐶  V2版本
 """
 
 # 每个链的颜色和符号
