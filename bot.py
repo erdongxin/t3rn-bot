@@ -8,7 +8,7 @@ import random  # 引入随机模块
 
 # 数据桥接配置
 from data_bridge import data_bridge
-from keys_and_addresses import private_keys, labels  # 不再读取 my_addresses
+from keys_and_addresses import private_keys, labels
 from network_config import networks
 
 # 文本居中函数
@@ -118,6 +118,40 @@ def send_bridge_transaction(web3, account, my_address, data, network_name):
         print(f"发送交易错误: {e}")
         return None, None
 
+# 新增：多地址时自动 动态替换data结构中的地址部分
+def modify_data_address(original_data, current_address, bridge_type):
+    """
+    动态替换 data 中的地址部分
+    Args:
+        original_data (str): 原始 data 字符串
+        current_address (str): 当前钱包地址（带0x）
+        bridge_type (str): 桥接类型（如 "Base - OP Sepolia"）
+    Returns:
+        str: 替换后的 data
+    """
+    # 获取当前地址的小写形式（不带0x）
+    current_address_clean = current_address.lower().replace("0x", "")
+    
+    # 定义不同桥接类型的地址偏移位置（根据你的 data 结构调整）
+    address_positions = {
+        "Base - OP Sepolia": 322,  # 地址在 data 字符串中的起始位置（16进制字符位置）
+        "OP - Base": 322
+    }
+    
+    # 获取地址段的起始位置
+    start = address_positions.get(bridge_type, 322)  # 默认322
+    
+    # 原始地址段（64字符 = 32字节，前24个0 + 40字符地址）
+    original_address_part = original_data[start:start+64]
+    
+    # 新地址段（补零到64字符）
+    new_address_part = "000000000000000000000000" + current_address_clean
+    
+    # 替换地址部分
+    modified_data = original_data[:start] + new_address_part + original_data[start+64:]
+    
+    return modified_data
+
 # 在特定网络上处理交易的函数
 def process_network_transactions(network_name, bridges, chain_data, successful_txs):
     web3 = Web3(Web3.HTTPProvider(chain_data['rpc_url']))
@@ -137,12 +171,31 @@ def process_network_transactions(network_name, bridges, chain_data, successful_t
             # 通过私钥生成地址
             my_address = account.address
 
-            data = data_bridge.get(bridge)  # 确保 data_bridge 是字典类型
-            if not data:
+            # data = data_bridge.get(bridge)  # 确保 data_bridge 是字典类型
+
+            # if not data:
+            #     print(f"桥接 {bridge} 数据不可用!")
+            #     continue
+
+            # result = send_bridge_transaction(web3, account, my_address, data, network_name)
+
+            # ----------------------------------获取原始 data-----------------------------
+            original_data = data_bridge.get(bridge)
+            if not original_data:
                 print(f"桥接 {bridge} 数据不可用!")
                 continue
 
-            result = send_bridge_transaction(web3, account, my_address, data, network_name)
+            # 动态替换地址（新增逻辑）
+            modified_data = modify_data_address(
+                original_data=original_data,
+                current_address=my_address,
+                bridge_type=bridge
+            )
+
+            # 发送交易时使用 modified_data
+            result = send_bridge_transaction(web3, account, my_address, modified_data, network_name)
+            
+
             if result:
                 tx_hash, value_sent = result
                 successful_txs += 1
