@@ -44,6 +44,30 @@ explorer_urls = {
     'b2n': 'https://b2n.explorer.caldera.xyz/tx/'
 }
 
+# 地址管理类
+class AddressState:
+    def __init__(self, private_keys, initial_network='Base'):
+        self.address_states = {}
+        # 初始化每个地址的链状态
+        for priv_key in private_keys:
+            account = Account.from_key(priv_key)
+            address = account.address
+            self.address_states[address] = {
+                'current_network': initial_network,
+                'alternate_network': 'OP Sepolia' if initial_network == 'Base' else 'Base'
+            }
+    
+    def get_network(self, address):
+        return self.address_states[address]['current_network']
+    
+    def switch_network(self, address):
+        # 切换当前链和备用链
+        current = self.address_states[address]['current_network']
+        alternate = self.address_states[address]['alternate_network']
+        self.address_states[address]['current_network'] = alternate
+        self.address_states[address]['alternate_network'] = current
+        return alternate
+
 # 获取b2n余额的函数
 def get_b2n_balance(web3, my_address):
     balance = web3.eth.get_balance(my_address)
@@ -155,6 +179,7 @@ def modify_data_address(original_data, current_address, bridge_type):
 # 在特定网络上处理交易的函数
 def process_network_transactions(network_name, bridges, chain_data, successful_txs):
     web3 = Web3(Web3.HTTPProvider(chain_data['rpc_url']))
+    num_addresses = len(private_keys)
 
     # 如果无法连接，重试直到成功
     while not web3.is_connected():
@@ -165,105 +190,82 @@ def process_network_transactions(network_name, bridges, chain_data, successful_t
     print(f"成功连接到 {network_name}")
 
     for bridge in bridges:
-
         for i, private_key in enumerate(private_keys):
             account = Account.from_key(private_key)
-
-            # 通过私钥生成地址
             my_address = account.address
+            print(f"正在处理地址 {i+1}/{num_addresses}: {my_address}")
 
-            # data = data_bridge.get(bridge)  # 确保 data_bridge 是字典类型
-
-            # if not data:
-            #     print(f"桥接 {bridge} 数据不可用!")
-            #     continue
-
-            # result = send_bridge_transaction(web3, account, my_address, data, network_name)
-
-            # ----------------------------------获取原始 data-----------------------------
+            # 动态替换 data 地址部分
             original_data = data_bridge.get(bridge)
             if not original_data:
                 print(f"桥接 {bridge} 数据不可用!")
                 continue
 
-            # 动态替换地址（新增逻辑）
             modified_data = modify_data_address(
                 original_data=original_data,
                 current_address=my_address,
                 bridge_type=bridge
             )
 
-            # 发送交易时使用 modified_data
+            # 发送交易
             result = send_bridge_transaction(web3, account, my_address, modified_data, network_name)
-
             if result:
                 tx_hash, value_sent = result
                 successful_txs += 1
+                print(f"{chain_symbols[network_name]}🚀 成功交易总数: {successful_txs} | {labels[i]} | 桥接: {bridge} | 金额: {value_sent:.5f} ETH ✅{reset_color}\n")
 
-                # 检查 value_sent 是否有效再格式化
-                if value_sent is not None:
-                    print(f"{chain_symbols[network_name]}🚀 成功交易总数: {successful_txs} | {labels[i]} | 桥接: {bridge} | 桥接金额: {value_sent:.5f} ETH ✅{reset_color}\n")
-                else:
-                    print(f"{chain_symbols[network_name]}🚀 成功交易总数: {successful_txs} | {labels[i]} | 桥接: {bridge} ✅{reset_color}\n")
-
-                print(f"{'='*150}")
-                print("\n")
-
-            # 随机休息 3-8秒
+            # 交易间短延时
             wait_time = random.uniform(3, 5)
-            time.sleep(wait_time)  # 随机延迟时间
-
-        # 随机等待 60 到 90 秒
-        wait_time = random.uniform(70, 90)
-        print(f"⏳ 所有地址已成功执行，等待 {wait_time:.2f} 秒后继续下一轮...\n")
-        time.sleep(wait_time)  # 随机延迟时间
+            time.sleep(wait_time)
 
     return successful_txs
-
-# 显示链选择菜单的函数
-def display_menu():
-    print(f"{menu_color}选择要运行交易的链:{reset_color}")
-    print(" ")
-    print(f"{chain_symbols['Base']}1. Base -> OP Sepolia{reset_color}")
-    print(f"{chain_symbols['OP Sepolia']}2. OP -> Base{reset_color}")
-    print(f"{menu_color}3. 运行所有链{reset_color}")
-    print(" ")
-    choice = input("输入选择 (1-3): ")
-    return choice
 
 def main():
     print("\033[92m" + center_text(description) + "\033[0m")
     print("\n\n")
 
     successful_txs = 0
-    current_network = 'Base'  # 默认从 Base 链开始
-    alternate_network = 'OP Sepolia'
+    level = 1
+    address_state = AddressState(private_keys, initial_network='Base')  # 初始化地址状态
 
     while True:
-        # 检查当前网络余额是否足够
-        web3 = Web3(Web3.HTTPProvider(networks[current_network]['rpc_url']))
-        
-        # 如果无法连接，尝试重新连接
-        while not web3.is_connected():
-            print(f"无法连接到 {current_network}，正在尝试重新连接...")
-            time.sleep(5)  # 等待 5 秒后重试
+        # 遍历每个地址并独立处理
+        for i, private_key in enumerate(private_keys):
+            account = Account.from_key(private_key)
+            my_address = account.address
+            label = labels[i]
+
+            # 获取当前地址的网络状态
+            current_network = address_state.get_network(my_address)
+            alternate_network = address_state.address_states[my_address]['alternate_network']
+
+            # 检查当前网络的余额
             web3 = Web3(Web3.HTTPProvider(networks[current_network]['rpc_url']))
-        
-        print(f"成功连接到 {current_network}")
-        
-        my_address = Account.from_key(private_keys[0]).address  # 使用第一个私钥的地址
-        balance = check_balance(web3, my_address)
+            while not web3.is_connected():
+                print(f"地址 {my_address} 无法连接到 {current_network}，正在尝试重新连接...")
+                time.sleep(5)
+                web3 = Web3(Web3.HTTPProvider(networks[current_network]['rpc_url']))
 
-        # 如果余额不足 0.201 ETH，切换到另一个链
-        if balance < 0.201:
-            print(f"{chain_symbols[current_network]}{current_network}余额不足 0.201 ETH，切换到 {alternate_network}{reset_color}")
-            current_network, alternate_network = alternate_network, current_network  # 交换链
+            balance = check_balance(web3, my_address)
+            if balance < 0.201:
+                print(f"{chain_symbols[current_network]}{my_address} 在 {current_network} 余额不足 0.201 ETH，切换到 {alternate_network}{reset_color}")
+                new_network = address_state.switch_network(my_address)
+                current_network = new_network  # 更新当前网络
 
-        # 处理当前链的交易
-        successful_txs = process_network_transactions(current_network, ["Base - OP Sepolia"] if current_network == 'Base' else ["OP - Base"], networks[current_network], successful_txs)
+            # 处理当前链的交易
+            successful_txs = process_network_transactions(
+                current_network,
+                ["Base - OP Sepolia"] if current_network == 'Base' else ["OP - Base"],
+                networks[current_network],
+                successful_txs
+            )
 
-        # 自动切换网络
-        time.sleep(random.uniform(30, 60))  # 在每次切换网络时增加随机的延时
+            # 地址间延时
+            wait_time = random.uniform(60, 90)
+            print(f"⏳ 第{[level]}轮成功执行完成，等待 {wait_time:.2f} 秒后继续下一轮...\n")
+            level = level +1
+            time.sleep(wait_time)
+            
 
 if __name__ == "__main__":
     main()
