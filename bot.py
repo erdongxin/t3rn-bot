@@ -165,6 +165,7 @@ def process_network_transactions(network_name, bridges, chain_data, successful_t
     print(f"成功连接到 {network_name}")
 
     for bridge in bridges:
+
         for i, private_key in enumerate(private_keys):
             account = Account.from_key(private_key)
 
@@ -194,7 +195,6 @@ def process_network_transactions(network_name, bridges, chain_data, successful_t
 
             # 发送交易时使用 modified_data
             result = send_bridge_transaction(web3, account, my_address, modified_data, network_name)
-            
 
             if result:
                 tx_hash, value_sent = result
@@ -208,11 +208,15 @@ def process_network_transactions(network_name, bridges, chain_data, successful_t
 
                 print(f"{'='*150}")
                 print("\n")
-            
-            # 随机等待 120 到 180 秒
-            wait_time = random.uniform(120, 180)
-            print(f"⏳ 等待 {wait_time:.2f} 秒后继续...\n")
+
+            # 随机休息 3-8秒
+            wait_time = random.uniform(3, 5)
             time.sleep(wait_time)  # 随机延迟时间
+
+        # 随机等待 60 到 90 秒
+        wait_time = random.uniform(70, 90)
+        print(f"⏳ 所有地址已成功执行，等待 {wait_time:.2f} 秒后继续下一轮...\n")
+        time.sleep(wait_time)  # 随机延迟时间
 
     return successful_txs
 
