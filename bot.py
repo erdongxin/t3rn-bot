@@ -143,36 +143,29 @@ def send_bridge_transaction(web3, account, my_address, data, network_name):
         return None, None
 
 # 新增：多地址时自动 动态替换data结构中的地址部分
-def modify_data_address(original_data, current_address, bridge_type):
+def replace_middle_address(original_data, current_address):
     """
-    动态替换 data 中的地址部分
+    替换 data 中第 163 列到第 202 列的地址字段
     Args:
         original_data (str): 原始 data 字符串
         current_address (str): 当前钱包地址（带0x）
-        bridge_type (str): 桥接类型（如 "Base - OP Sepolia"）
     Returns:
         str: 替换后的 data
     """
-    # 获取当前地址的小写形式（不带0x）
+    # 去掉 0x 前缀并转为小写
     current_address_clean = current_address.lower().replace("0x", "")
     
-    # 定义不同桥接类型的地址偏移位置（根据你的 data 结构调整）
-    address_positions = {
-        "Base - OP Sepolia": 322,  # 地址在 data 字符串中的起始位置（16进制字符位置）
-        "OP - Base": 322
-    }
+    # 定义替换范围（列号从 0 开始）
+    start = 162  # 第 163 列（Python 索引从 0 开始）
+    end = 202    # 第 202 列（包含）
     
-    # 获取地址段的起始位置
-    start = address_positions.get(bridge_type, 322)  # 默认322
     
-    # 原始地址段（64字符 = 32字节，前24个0 + 40字符地址）
-    original_address_part = original_data[start:start+64]
+    # 生成新地址段（固定40字符）
+    if len(current_address_clean) != 40:
+        raise ValueError(f"地址长度应为40字符，实际 {len(current_address_clean)}")
     
-    # 新地址段（补零到64字符）
-    new_address_part = "000000000000000000000000" + current_address_clean
-    
-    # 替换地址部分
-    modified_data = original_data[:start] + new_address_part + original_data[start+64:]
+    # 替换指定区间
+    modified_data = original_data[:start] + current_address_clean + original_data[end:]
     
     return modified_data
 
@@ -195,23 +188,21 @@ def process_network_transactions(network_name, bridges, chain_data, successful_t
             my_address = account.address
             print(f"正在处理地址 {i+1}/{num_addresses}: {my_address}")
 
-            # 动态替换 data 地址部分
+            # 获取 data
             original_data = data_bridge.get(bridge)
             if not original_data:
                 print(f"桥接 {bridge} 数据不可用!")
                 continue
 
-            modified_data = modify_data_address(
-                original_data=original_data,
-                current_address=my_address,
-                bridge_type=bridge
-            )
+            # 动态替换 data 地址部分
+            modified_data = replace_middle_address(original_data, my_address)
 
             # 发送交易
             result = send_bridge_transaction(web3, account, my_address, modified_data, network_name)
             if result:
                 tx_hash, value_sent = result
                 successful_txs += 1
+                
                 print(f"{chain_symbols[network_name]}🚀 成功交易总数: {successful_txs} | {labels[i]} | 桥接: {bridge} | 金额: {value_sent:.5f} ETH ✅{reset_color}\n")
 
             # 交易间短延时
