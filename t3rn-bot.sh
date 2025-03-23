@@ -15,7 +15,8 @@ VENV_DIR="t3rn-env"  # 虚拟环境目录
 function main_menu() {
     while true; do
         clear
-        echo "脚本由大赌社区哈哈哈哈编写，推特 @ferdie_jhovie，免费开源，请勿相信收费"
+        echo "脚本由大赌社区哈哈哈哈编写，推特 @ferdie_jhovie，免费开源，@Chancy59850326改造，请勿相信收费"
+        echo "支持多号跑脚本，内置DATA"
         echo "================================================================"
         echo "退出脚本，请按键盘 ctrl + C 退出即可"
         echo "请选择要执行的操作:"
@@ -134,26 +135,26 @@ EOL
     echo "脚本执行完成！所有依赖已安装，私钥和标签已保存到 $PYTHON_FILE 中。"
     echo "请务必妥善保管此文件，避免泄露您的私钥和标签信息！"
 
-    # 获取额外的用户输入："Base - OP Sepolia" 和 "OP - Base"
-    echo "请输入 'Base - OP Sepolia' 的值："
-    read -r base_op_sepolia_value
+    # # 获取额外的用户输入："Base - OP Sepolia" 和 "OP - Base"
+    # echo "请输入 'Base - OP Sepolia' 的值："
+    # read -r base_op_sepolia_value
 
-    echo "请输入 'OP - Base' 的值："
-    read -r op_base_value
+    # echo "请输入 'OP - Base' 的值："
+    # read -r op_base_value
 
-    # 写入 data_bridge.py 文件
-    echo "正在写入 $DATA_BRIDGE_FILE 文件..."
-    cat > $DATA_BRIDGE_FILE <<EOL
+    # # 写入 data_bridge.py 文件
+    # echo "正在写入 $DATA_BRIDGE_FILE 文件..."
+    # cat > $DATA_BRIDGE_FILE <<EOL
 # 此文件由脚本生成
 
-data_bridge = {
-    # Data bridge Base
-    "Base - OP Sepolia": "$base_op_sepolia_value",
+# data_bridge = {
+#     # Data bridge Base
+#     "Base - OP Sepolia": "$base_op_sepolia_value",
 
-    # Data bridge OP Sepolia
-    "OP - Base": "$op_base_value",
-}
-EOL
+#     # Data bridge OP Sepolia
+#     "OP - Base": "$op_base_value",
+# }
+# EOL
 
     echo "$DATA_BRIDGE_FILE 文件已生成。"
 
