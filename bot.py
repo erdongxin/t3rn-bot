@@ -169,7 +169,6 @@ def replace_middle_address(original_data, current_address):
 # 逐个地址处理交易
 def process_single_address_transaction(web3, account, network_name, bridge, successful_txs):
     my_address = account.address
-    print(f"正在处理地址: {my_address}")
 
     original_data = data_bridge.get(bridge)
     if not original_data:
@@ -199,6 +198,7 @@ def main():
 
     successful_txs = 0
     level = 1
+    num_addresses = len(private_keys)
     address_state = AddressState(private_keys, initial_network='Base')  # 初始化地址状态
 
     while True:
@@ -237,6 +237,7 @@ def main():
                     continue
 
             # 处理当前地址的交易
+            print(f"正在处理地址 {i+1}/{num_addresses}: {my_address}")
             bridge_name = "Base - OP Sepolia" if current_network == 'Base' else "OP - Base"
             successful_txs = process_single_address_transaction(
                 web3, account, current_network, bridge_name, successful_txs
