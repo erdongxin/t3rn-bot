@@ -192,6 +192,22 @@ def process_single_address_transaction(web3, account, network_name, bridge, succ
     time.sleep(wait_time)
     return successful_txs
 
+# 新增随机访问rpc
+def create_web3_connection(network_name):
+    max_retries = 3
+    rpc_urls = networks[network_name]['rpc_urls']
+    
+    for _ in range(max_retries):
+        selected_rpc = random.choice(rpc_urls)
+        web3 = Web3(Web3.HTTPProvider(selected_rpc))
+        if web3.is_connected():
+            print(f"✅ 成功连接到 {selected_rpc}")
+            return web3
+        print(f"⚠️ 连接失败: {selected_rpc}")
+        time.sleep(1)
+    
+    raise ConnectionError(f"无法连接到 {network_name} 网络")
+
 def main():
     print("\033[92m" + center_text(description) + "\033[0m")
     print("\n\n")
@@ -213,7 +229,13 @@ def main():
             alternate_network = address_state.address_states[my_address]['alternate_network']
 
             # 连接到当前网络
-            web3 = Web3(Web3.HTTPProvider(networks[current_network]['rpc_url']))
+            # web3 = Web3(Web3.HTTPProvider(networks[current_network]['rpc_url']))
+            try:
+                web3 = create_web3_connection(current_network)
+            except ConnectionError as e:
+                print(f"❌ {e}")
+                continue
+
             while not web3.is_connected():
                 print(f"地址 {my_address} 无法连接到 {current_network}，正在尝试重新连接...")
                 time.sleep(5)
@@ -225,8 +247,15 @@ def main():
                 print(f"{chain_symbols[current_network]}⚠️ {my_address} 在 {current_network} 余额不足 1.1 ETH，尝试切换到 {alternate_network}{reset_color}")
 
                 # 检查目标网络余额
-                alt_web3 = Web3(Web3.HTTPProvider(networks[alternate_network]['rpc_url']))
-                alt_balance = check_balance(alt_web3, my_address)
+                # alt_web3 = Web3(Web3.HTTPProvider(networks[alternate_network]['rpc_url']))
+                # alt_balance = check_balance(alt_web3, my_address)
+                try:
+                    alt_web3 = create_web3_connection(alternate_network)
+                    alt_balance = check_balance(alt_web3, my_address)
+                except Exception as e:
+                    print(f"备用网络检查失败: {e}")
+                    continue
+
                 if alt_balance >= 1.1:
                     new_network = address_state.switch_network(my_address)
                     current_network = new_network
