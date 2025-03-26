@@ -143,11 +143,6 @@ def send_bridge_transaction(web3, account, my_address, data, network_name):
 def replace_middle_address(original_data, current_address):
     """
     替换 data 中第 163 列到第 202 列的地址字段
-    Args:
-        original_data (str): 原始 data 字符串
-        current_address (str): 当前钱包地址（带0x）
-    Returns:
-        str: 替换后的 data
     """
     # 去掉 0x 前缀并转为小写
     current_address_clean = current_address.lower().replace("0x", "")
@@ -155,7 +150,6 @@ def replace_middle_address(original_data, current_address):
     # 定义替换范围（列号从 0 开始）
     start = 162  # 第 163 列（Python 索引从 0 开始）
     end = 202    # 第 202 列（包含）
-    
     
     # 生成新地址段（固定40字符）
     if len(current_address_clean) != 40:
@@ -273,7 +267,7 @@ def main():
             )
 
         # 地址间延时
-        wait_time = random.uniform(1, 2)
+        wait_time = random.uniform(5, 10)
         print(f"⏳ 第{level}轮完成，等待 {wait_time:.2f} 秒...\n")
         level += 1
         time.sleep(wait_time)
