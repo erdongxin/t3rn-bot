@@ -238,7 +238,7 @@ def main():
             # 检查当前网络余额是否足够
             balance = check_balance(web3, my_address)
             if balance < 1.61:
-                print(f"{chain_symbols[current_network]}⚠️ {my_address} 在 {current_network} 余额不足 1.1 ETH，尝试切换到 {alternate_network}{reset_color}")
+                print(f"{chain_symbols[current_network]}⚠️ {my_address} 在 {current_network} 余额不足 1.61 ETH，尝试切换到 {alternate_network}{reset_color}")
 
                 # 检查目标网络余额
                 # alt_web3 = Web3(Web3.HTTPProvider(networks[alternate_network]['rpc_url']))
