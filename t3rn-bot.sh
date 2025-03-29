@@ -11,9 +11,10 @@ DATA_BRIDGE_FILE="data_bridge.py"
 BOT_FILE="bot.py"
 VENV_DIR="t3rn-env"  # 虚拟环境目录
 
-WEB3_VERSION="7.10.0"          # 固定 web3 版本
-ETH_ACCOUNT_VERSION="0.13.6"   # 固定 eth-account 版本
-COLORAMA_VERSION="0.4.6"       # 固定 colorama 版本
+WEB3_VERSION="7.10.0"
+ETH_ACCOUNT_VERSION="0.14.0"
+COLORAMA_VERSION="0.4.6"
+ETH_UTILS_VERSION="5.0.0"
 
 # 主菜单函数
 function main_menu() {
