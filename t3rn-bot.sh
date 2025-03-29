@@ -101,7 +101,7 @@ function execute_cross_chain_script() {
         colorama==$COLORAMA_VERSION \
         eth-hash==0.5.2 \
         hexbytes==0.3.1 \
-        eth-utils==2.3.0
+        eth-utils==$ETH_UTILS_VERSION
     
     # 提醒用户私钥安全
     echo "警告：请务必确保您的私钥安全！"
