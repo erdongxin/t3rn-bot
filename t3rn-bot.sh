@@ -11,10 +11,8 @@ DATA_BRIDGE_FILE="data_bridge.py"
 BOT_FILE="bot.py"
 VENV_DIR="t3rn-env"  # 虚拟环境目录
 
-WEB3_VERSION="7.10.0"
-ETH_ACCOUNT_VERSION="0.14.0"
+# 修改版本变量为   
 COLORAMA_VERSION="0.4.6"
-ETH_UTILS_VERSION="5.0.0"
 
 # 主菜单函数
 function main_menu() {
@@ -96,12 +94,12 @@ function execute_cross_chain_script() {
     # 安装固定版本依赖（关键修改）
     echo "正在安装依赖..."
     pip install \
-        web3==$WEB3_VERSION \
-        eth-account==$ETH_ACCOUNT_VERSION \
+        web3 \
+        eth-account \
         colorama==$COLORAMA_VERSION \
-        eth-hash==0.5.2 \
-        hexbytes==0.3.1 \
-        eth-utils==$ETH_UTILS_VERSION
+        eth-hash \
+        hexbytes \
+        eth-utils
     
     # 提醒用户私钥安全
     echo "警告：请务必确保您的私钥安全！"
