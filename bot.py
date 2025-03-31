@@ -81,7 +81,7 @@ def check_balance(web3, my_address):
 # 创建和发送交易的函数
 def send_bridge_transaction(web3, account, my_address, data, network_name):
     nonce = web3.eth.get_transaction_count(my_address, 'pending')
-    value_in_ether = 1.601
+    value_in_ether = 5.0
     value_in_wei = web3.to_wei(value_in_ether, 'ether')
 
     try:
@@ -239,8 +239,8 @@ def main():
 
             # 检查当前网络余额是否足够
             balance = check_balance(web3, my_address)
-            if balance < 1.61:
-                print(f"{chain_symbols[current_network]}⚠️ {my_address} 在 {current_network} 余额不足 1.61 ETH，尝试切换到 {alternate_network}{reset_color}")
+            if balance < 5.01:
+                print(f"{chain_symbols[current_network]}⚠️ {my_address} 在 {current_network} 余额不足 5.01 ETH，尝试切换到 {alternate_network}{reset_color}")
 
                 try:
                     alt_web3 = create_web3_connection(alternate_network)
@@ -249,7 +249,7 @@ def main():
                     print(f"备用网络检查失败: {e}")
                     continue
 
-                if alt_balance >= 1.61:
+                if alt_balance >= 5.01:
                     new_network = address_state.switch_network(my_address)
                     current_network = new_network
                     web3 = alt_web3
