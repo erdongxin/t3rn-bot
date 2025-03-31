@@ -222,8 +222,6 @@ def main():
             current_network = address_state.get_network(my_address)
             alternate_network = address_state.address_states[my_address]['alternate_network']
 
-            # 连接到当前网络
-            # web3 = Web3(Web3.HTTPProvider(networks[current_network]['rpc_url']))
             try:
                 web3 = create_web3_connection(current_network)
             except ConnectionError as e:
@@ -233,16 +231,17 @@ def main():
             while not web3.is_connected():
                 print(f"地址 {my_address} 无法连接到 {current_network}，正在尝试重新连接...")
                 time.sleep(5)
-                web3 = Web3(Web3.HTTPProvider(networks[current_network]['rpc_url']))
+                try:
+                    web3 = create_web3_connection(current_network)
+                except ConnectionError as e:
+                    print(f"❌ 重新连接失败: {e}")
+                    continue  # 继续尝试或切换网络
 
             # 检查当前网络余额是否足够
             balance = check_balance(web3, my_address)
             if balance < 1.61:
                 print(f"{chain_symbols[current_network]}⚠️ {my_address} 在 {current_network} 余额不足 1.61 ETH，尝试切换到 {alternate_network}{reset_color}")
 
-                # 检查目标网络余额
-                # alt_web3 = Web3(Web3.HTTPProvider(networks[alternate_network]['rpc_url']))
-                # alt_balance = check_balance(alt_web3, my_address)
                 try:
                     alt_web3 = create_web3_connection(alternate_network)
                     alt_balance = check_balance(alt_web3, my_address)
