@@ -182,7 +182,7 @@ def process_single_address_transaction(web3, account, network_name, bridge, succ
     else:
         print(f"{chain_symbols.get(network_name, reset_color)}❌ 交易失败 {reset_color}")
 
-    wait_time = random.uniform(3, 5)
+    wait_time = random.uniform(2, 3)
     time.sleep(wait_time)
     return successful_txs
 
