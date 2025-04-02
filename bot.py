@@ -182,7 +182,7 @@ def process_single_address_transaction(web3, account, network_name, bridge, succ
     else:
         print(f"{chain_symbols.get(network_name, reset_color)}❌ 交易失败 {reset_color}")
 
-    wait_time = random.uniform(2, 3)
+    wait_time = random.uniform(1, 2)
     time.sleep(wait_time)
     return successful_txs
 
@@ -266,7 +266,7 @@ def main():
             )
 
         # 地址间延时
-        wait_time = random.uniform(5, 8)
+        wait_time = random.uniform(3, 5)
         print(f"⏳ 第{level}轮完成，等待 {wait_time:.2f} 秒...\n")
         level += 1
         time.sleep(wait_time)
