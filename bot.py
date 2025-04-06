@@ -13,7 +13,11 @@ from network_config import networks
 
 # 文本居中函数
 def center_text(text):
-    terminal_width = os.get_terminal_size().columns
+    # 添加异常处理
+    try:
+        terminal_width = os.get_terminal_size().columns
+    except OSError:
+        terminal_width = 80  # 使用默认宽度
     lines = text.splitlines()
     centered_lines = [line.center(terminal_width) for line in lines]
     return "\n".join(centered_lines)
@@ -169,7 +173,11 @@ def process_single_address_transaction(web3, account, network_name, bridge, succ
         print(f"桥接 {bridge} 数据不可用!")
         return successful_txs
 
-    modified_data = replace_middle_address(original_data, my_address)
+    try:
+        modified_data = replace_middle_address(original_data, my_address)
+    except ValueError as e:
+        print(f"地址格式错误: {e}")
+        return successful_txs
 
     # 只有成功时才处理
     result = send_bridge_transaction(web3, account, my_address, modified_data, network_name)
@@ -214,56 +222,63 @@ def main():
     while True:
         # 遍历每个地址并完全独立处理
         for i, private_key in enumerate(private_keys):
-            account = Account.from_key(private_key)
-            my_address = account.address
-            label = labels[i]
-
-            # 获取当前地址的网络状态
-            current_network = address_state.get_network(my_address)
-            alternate_network = address_state.address_states[my_address]['alternate_network']
-
             try:
-                web3 = create_web3_connection(current_network)
-            except ConnectionError as e:
-                print(f"❌ {e}")
-                continue
+                # 整个地址处理流程
+                account = Account.from_key(private_key)
+                my_address = account.address
+                label = labels[i]
 
-            while not web3.is_connected():
-                print(f"地址 {my_address} 无法连接到 {current_network}，正在尝试重新连接...")
-                time.sleep(5)
+                # 获取当前地址的网络状态
+                current_network = address_state.get_network(my_address)
+                alternate_network = address_state.address_states[my_address]['alternate_network']
+
                 try:
                     web3 = create_web3_connection(current_network)
                 except ConnectionError as e:
-                    print(f"❌ 重新连接失败: {e}")
-                    continue  # 继续尝试或切换网络
-
-            # 检查当前网络余额是否足够
-            balance = check_balance(web3, my_address)
-            if balance < 3.01:
-                print(f"{chain_symbols[current_network]}⚠️ {my_address} 在 {current_network} 余额不足 3.01 ETH，尝试切换到 {alternate_network}{reset_color}")
-
-                try:
-                    alt_web3 = create_web3_connection(alternate_network)
-                    alt_balance = check_balance(alt_web3, my_address)
-                except Exception as e:
-                    print(f"备用网络检查失败: {e}")
+                    print(f"❌ {e}")
                     continue
 
-                if alt_balance >= 3.01:
-                    new_network = address_state.switch_network(my_address)
-                    current_network = new_network
-                    web3 = alt_web3
-                    print(f"🔄 已切换到 {new_network}，余额充足")
-                else:
-                    print(f"❌ 两个网络余额均不足，跳过地址 {my_address}")
-                    continue
+                while not web3.is_connected():
+                    print(f"地址 {my_address} 无法连接到 {current_network}，正在尝试重新连接...")
+                    time.sleep(5)
+                    try:
+                        web3 = create_web3_connection(current_network)
+                    except ConnectionError as e:
+                        print(f"❌ 重新连接失败: {e}")
+                        continue  # 继续尝试或切换网络
 
-            # 处理当前地址的交易
-            print(f"正在处理地址 {i+1}/{num_addresses}: {my_address}")
-            bridge_name = "Base - OP Sepolia" if current_network == 'Base' else "OP - Base"
-            successful_txs = process_single_address_transaction(
-                web3, account, current_network, bridge_name, successful_txs
-            )
+                # 检查当前网络余额是否足够
+                balance = check_balance(web3, my_address)
+                if balance < 3.01:
+                    print(f"{chain_symbols[current_network]}⚠️ {my_address} 在 {current_network} 余额不足 3.01 ETH，尝试切换到 {alternate_network}{reset_color}")
+
+                    try:
+                        alt_web3 = create_web3_connection(alternate_network)
+                        alt_balance = check_balance(alt_web3, my_address)
+                    except Exception as e:
+                        print(f"备用网络检查失败: {e}")
+                        continue
+
+                    if alt_balance >= 3.01:
+                        new_network = address_state.switch_network(my_address)
+                        current_network = new_network
+                        web3 = alt_web3
+                        print(f"🔄 已切换到 {new_network}，余额充足")
+                    else:
+                        print(f"❌ 两个网络余额均不足，跳过地址 {my_address}")
+                        continue
+
+                # 处理当前地址的交易
+                print(f"正在处理地址 {i+1}/{num_addresses}: {my_address}")
+                bridge_name = "Base - OP Sepolia" if current_network == 'Base' else "OP - Base"
+                successful_txs = process_single_address_transaction(
+                    web3, account, current_network, bridge_name, successful_txs
+                )
+            except Exception as e:
+                print(f"地址处理异常: {str(e)}")
+                continue
+
+            
 
         # 地址间延时
         wait_time = random.uniform(1, 2)
