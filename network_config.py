@@ -64,7 +64,7 @@ networks = {
     },
     'OP Sepolia': {
         # 'rpc_urls': [f'https://opt-sepolia.g.alchemy.com/v2/{key}' for key in rpc_api_keys],
-        'rpc_urls': ['https://endpoints.omniatech.io/v1/op/sepolia/public'],
+        'rpc_urls': ['https://sepolia.optimism.io'],
         'chain_id': 11155420,
         'contract_address': '0xb6Def636914Ae60173d9007E732684a9eEDEF26E'
     }
