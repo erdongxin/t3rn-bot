@@ -53,19 +53,18 @@ rpc_api_keys = [
     # 'nDjUJPWdp10V8h2yAL3qFVrtIFcbsusG',
     # 'xPS6bEMDqjU_abhdE6t3U9FvsUg29JEt',
     # 'QPASiCxUbeTEbAoEETJZzKGLaK-6vBdZ',
-    'VoylN1mrsDm0VfjPCT9yl7kJfB6MH9Em'
 ]
 
 networks = {
     'Base': {
-        'rpc_urls': [f'https://base-sepolia.g.alchemy.com/v2/{key}' for key in rpc_api_keys],
-        # 'rpc_urls': 'https://sepolia.base.org',
+        # 'rpc_urls': [f'https://base-sepolia.g.alchemy.com/v2/{key}' for key in rpc_api_keys],
+        'rpc_urls': 'https://sepolia.basescan.org/',
         'chain_id': 84532,
         'contract_address': '0xCEE0372632a37Ba4d0499D1E2116eCff3A17d3C3'
     },
     'OP Sepolia': {
-        'rpc_urls': [f'https://opt-sepolia.g.alchemy.com/v2/{key}' for key in rpc_api_keys],
-        # 'rpc_urls': 'https://sepolia.optimism.io',
+        # 'rpc_urls': [f'https://opt-sepolia.g.alchemy.com/v2/{key}' for key in rpc_api_keys],
+        'rpc_urls': 'https://endpoints.omniatech.io/v1/op/sepolia/public',
         'chain_id': 11155420,
         'contract_address': '0xb6Def636914Ae60173d9007E732684a9eEDEF26E'
     }
