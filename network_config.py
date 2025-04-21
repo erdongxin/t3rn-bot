@@ -58,13 +58,13 @@ rpc_api_keys = [
 networks = {
     'Base': {
         # 'rpc_urls': [f'https://base-sepolia.g.alchemy.com/v2/{key}' for key in rpc_api_keys],
-        'rpc_urls': 'https://base-sepolia.drpc.org',
+        'rpc_urls': 'https://base.llamarpc.com',
         'chain_id': 84532,
         'contract_address': '0xCEE0372632a37Ba4d0499D1E2116eCff3A17d3C3'
     },
     'OP Sepolia': {
         # 'rpc_urls': [f'https://opt-sepolia.g.alchemy.com/v2/{key}' for key in rpc_api_keys],
-        'rpc_urls': 'https://endpoints.omniatech.io/v1/op/sepolia/public',
+        'rpc_urls': 'https://optimism.blockpi.network/v1/rpc/public',
         'chain_id': 11155420,
         'contract_address': '0xb6Def636914Ae60173d9007E732684a9eEDEF26E'
     }
