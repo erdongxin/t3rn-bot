@@ -66,7 +66,6 @@ def send_tx(web3, account, data, net):
         tx_hash = web3.eth.send_raw_transaction(signed.raw_transaction)
         receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
 
-        # 成功后的丰富输出
         formatted_balance = web3.from_wei(web3.eth.get_balance(my_address), 'ether')
         b2n_balance = get_b2n_balance(
             Web3(Web3.HTTPProvider('https://b2n.rpc.caldera.xyz/http')),
