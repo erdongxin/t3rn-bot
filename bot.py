@@ -17,6 +17,7 @@ successful_txs = 0
 successful_txs_lock = threading.Lock()
 print_lock = threading.Lock()
 running = True  # 控制线程运行
+value_in_ether = 1.0 # 跨链金额
 
 # 文本居中函数
 def center_text(text):
@@ -50,27 +51,32 @@ explorer_urls = {
     'OP Sepolia': 'https://sepolia-optimism.etherscan.io/tx/',
     'b2n': 'https://b2n.explorer.caldera.xyz/tx/'
 }
-
+    
 class AddressState:
-    def __init__(self, private_keys, initial_network='Base'):
+    def __init__(self, private_keys):
         self.address_states = {}
         for priv_key in private_keys:
             account = Account.from_key(priv_key)
             address = account.address
+            # 添加随机选择初始网络逻辑
+            initial_network = random.choice(['Base', 'OP Sepolia'])
             self.address_states[address] = {
                 'current_network': initial_network,
-                'alternate_network': 'OP Sepolia' if initial_network == 'Base' else 'Base'
+                'alternate_network': 'OP Sepolia' if initial_network == 'Base' else 'Base',
+                'lock': threading.Lock()  # 添加线程锁
             }
-    
+
     def get_network(self, address):
-        return self.address_states[address]['current_network']
-    
+        with self.address_states[address]['lock']:
+            return self.address_states[address]['current_network']
+
     def switch_network(self, address):
-        current = self.address_states[address]['current_network']
-        alternate = self.address_states[address]['alternate_network']
-        self.address_states[address]['current_network'] = alternate
-        self.address_states[address]['alternate_network'] = current
-        return alternate
+        with self.address_states[address]['lock']:
+            current = self.address_states[address]['current_network']
+            alternate = self.address_states[address]['alternate_network']
+            self.address_states[address]['current_network'] = alternate
+            self.address_states[address]['alternate_network'] = current
+            return alternate
 
 def get_b2n_balance(web3, my_address):
     balance = web3.eth.get_balance(my_address)
@@ -82,7 +88,6 @@ def check_balance(web3, my_address):
 
 def send_bridge_transaction(web3, account, my_address, data, network_name):
     nonce = web3.eth.get_transaction_count(my_address, 'pending')
-    value_in_ether = 1.0
     value_in_wei = web3.to_wei(value_in_ether, 'ether')
 
     try:
@@ -190,9 +195,9 @@ def process_address_loop(private_key, label, index, address_state):
                 continue
 
             balance = check_balance(web3, my_address)
-            if balance < 1.01:
+            if balance < (value_in_ether + 0.01):
                 with print_lock:
-                    print(f"{chain_symbols[current_network]}⚠️ {my_address} 在 {current_network} 余额不足 1.01 ETH，尝试切换到 {alternate_network}{reset_color}")
+                    print(f"{chain_symbols[current_network]}⚠️ {my_address} 在 {current_network} 余额不足，尝试切换到 {alternate_network}{reset_color}")
                 
                 try:
                     alt_web3 = create_web3_connection(alternate_network)
@@ -203,7 +208,7 @@ def process_address_loop(private_key, label, index, address_state):
                     time.sleep(3)
                     continue
                 
-                if alt_balance >= 1.01:
+                if alt_balance >= (value_in_ether + 0.01):
                     new_network = address_state.switch_network(my_address)
                     current_network = new_network
                     web3 = alt_web3
