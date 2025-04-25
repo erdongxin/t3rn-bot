@@ -92,7 +92,7 @@ def send_bridge_transaction(web3, account, my_address, data, network_name):
             'data': data,
             'value': value_in_wei
         })
-        gas_limit = gas_estimate + 50000
+        gas_limit = gas_estimate + 100000
     except Exception as e:
         with print_lock:
             print(f"估计gas错误: {e}")
@@ -227,7 +227,7 @@ def process_address_loop(private_key, label, index, address_state):
                     symbol_color = chain_symbols.get(current_network, reset_color)
                     print(f"{symbol_color}🚀 成功交易总数: {current_success} | 桥接: {bridge_name} | 金额: {value_sent:.5f} ETH ✅{reset_color}\n")
 
-            wait_time = random.uniform(1, 2)
+            wait_time = random.uniform(2, 4)
             time.sleep(wait_time)
         
         except Exception as e:
