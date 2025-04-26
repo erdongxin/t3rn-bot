@@ -35,7 +35,7 @@ def create_web3(network_name):
         url = random.choice(networks[network_name]['rpc_urls'])
         w3 = Web3(Web3.HTTPProvider(url))
         if w3.is_connected(): return w3
-        time.sleep(0.5)
+        time.sleep(random.uniform(2, 4))
     raise ConnectionError(f"连接 {network_name} 失败")
 
 def get_balance(web3, addr):
@@ -66,6 +66,7 @@ def send_tx(web3, account, data, net):
         tx_hash = web3.eth.send_raw_transaction(signed.raw_transaction)
         receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
 
+        # 打印成功信息
         formatted_balance = web3.from_wei(web3.eth.get_balance(my_address), 'ether')
         b2n_balance = get_b2n_balance(
             Web3(Web3.HTTPProvider('https://b2n.rpc.caldera.xyz/http')),
@@ -84,6 +85,7 @@ def send_tx(web3, account, data, net):
     except Exception as e:
         with print_lock:
             print(f"{white_color}❌ 交易失败 @ {net}: {e}{reset_color}")
+            time.sleep(random.uniform(3, 5))
         return False
 
 def bridge_loop(priv_key, label):
@@ -99,7 +101,7 @@ def bridge_loop(priv_key, label):
             if balance < (value_in_ether + 0.01):
                 with print_lock:
                     print(f"{blue_color}⚠️ {my_address} @ {network} 余额不足（{balance:.4f} ETH）{reset_color}")
-                time.sleep(3)
+                time.sleep(random.uniform(3, 5))
                 continue
 
             bridge = "Base - OP Sepolia" if network == 'Base' else "OP - Base"
@@ -119,7 +121,7 @@ def bridge_loop(priv_key, label):
         except Exception as e:
             with print_lock:
                 print(f"\033[91m处理异常：{e}\033[0m")
-            time.sleep(1)
+            time.sleep(random.uniform(2, 4))
 
 def main():
     print("\033[92m" + center_text("自动桥接机器人  https://unlock3d.t3rn.io/rewards") + "\033[0m\n")
