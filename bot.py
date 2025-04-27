@@ -85,7 +85,7 @@ def send_tx(web3, account, data, net):
     except Exception as e:
         with print_lock:
             print(f"{white_color}❌ 交易失败 @ {net}: {e}{reset_color}")
-            time.sleep(random.uniform(3, 5))
+            time.sleep(random.uniform(1, 2))
         return False
 
 def bridge_loop(priv_key, label):
