@@ -1,6 +1,6 @@
 networks = {
     'Base': {
-        'rpc_urls': ['https://base-sepolia.drpc.org'],
+        'rpc_urls': ['https://sepolia.base.org'],
         'chain_id': 84532,
         'contract_address': '0xCEE0372632a37Ba4d0499D1E2116eCff3A17d3C3'
     },
